@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- No title or extra header controls needed -->
+    <style>
+      /* Ensure the whole page fills the window */
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      /* Use flexbox to split the screen */
+      .container {
+        display: flex;
+        height: 100%;
+      }
+      /* Left panel: 60% of the width */
+      .left-panel {
+        width: 60%;
+        background-color: #000;  /* optional: black background */
+      }
+      /* Right panel: 40% of the width */
+      .right-panel {
+        width: 40%;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      /* Ensure the Webots view fills its container */
+      webots-view {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* Style the text area and send button */
+      #bigInput {
+        width: 100%;
+        height: calc(100% - 50px);
+        font-size: 16px;
+        padding: 5px;
+        box-sizing: border-box;
+      }
+      #sendButton {
+        width: 100%;
+        height: 40px;
+        font-size: 16px;
+        margin-top: 5px;
+      }
+    </style>
+    <!-- Load the Webots viewer module -->
+    <script type="module" src="https://cyberbotics.com/wwi/R2023b/WebotsView.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Left panel: Webots view automatically connecting using x3d -->
+      <div class="left-panel">
+        <webots-view></webots-view>
+      </div>
+      <!-- Right panel: A large text input and Send button -->
+      <div class="right-panel">
+        <textarea id="bigInput" placeholder="Enter your message here..."></textarea>
+        <button id="sendButton">Send</button>
+      </div>
+    </div>
+    <!-- Setup the viewer and Send button behavior -->
+    <script src="setup_viewer.js"></script>
+  </body>
+</html>

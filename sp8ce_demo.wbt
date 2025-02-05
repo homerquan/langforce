@@ -1,0 +1,90 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/Floor.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/factory/containers/protos/WoodenBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/kuka/youbot/protos/KukaBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/kuka/youbot/protos/Youbot.proto"
+
+WorldInfo {
+  info [
+    "Simulation of the KUKA youBot robot."
+    "This model includes an accurate and fast simulation of the Meccanum wheels."
+    "The robot can be equiped with various sensors (including the Microsoft Kinect) and configured with zero, one or two arms."
+  ]
+  title "KUKA youBot"
+  basicTimeStep 16
+  contactProperties [
+    ContactProperties {
+      material1 "InteriorWheelMat"
+      coulombFriction [
+        0, 2, 0
+      ]
+      frictionRotation -0.785398 0
+      bounce 0
+      forceDependentSlip [
+        10, 0
+      ]
+    }
+    ContactProperties {
+      material1 "ExteriorWheelMat"
+      coulombFriction [
+        0, 2, 0
+      ]
+      frictionRotation 0.785398 0
+      bounce 0
+      forceDependentSlip [
+        10, 0
+      ]
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.031607629106114886 0.1278250239352028 -0.9912929541958094 1.662782466034188
+  position 0.4488455202425302 2.257932301178341 0.376103004548244
+  follow "youBot"
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Floor {
+  size 100 100
+}
+WoodenBox {
+  translation 0.605448 0.00121984 0.2
+  rotation 0 0 1 -1.5707963267948966
+  size 0.6 0.6 0.4
+}
+KukaBox {
+  translation 0.2535586004085652 1.145545730795537 0.012491722790094176
+  rotation -0.9424483118764689 0.23642248128476787 -0.23642248155441498 1.630035850036586
+}
+Youbot {
+  hidden position_0_0 15.99454471344723
+  hidden position_0_1 -15.994563065499475
+  hidden position_0_2 -24.183727405114176
+  hidden position_0_3 24.18374338376464
+  hidden position_1_0 9.768910504720985e-07
+  hidden rotation_2 0 0 1 9.76679897795564e-07
+  hidden position_2_0 1.5700026175198034
+  hidden rotation_3 0 -1 0 1.5700026175198036
+  hidden position_3_0 -2.6350014759975564
+  hidden rotation_4 0 0.9999999999999999 0 2.6350014759975564
+  hidden position_4_0 1.7800004229912816
+  hidden rotation_5 0 -1 0 1.7800004229912814
+  hidden position_5_0 9.220289386020216e-08
+  hidden rotation_6 0 0 1 9.424321830774485e-08
+  hidden position_6_0 1.2316665114304502e-11
+  hidden position_6_1 -1.2314771926184337e-11
+  hidden rotation_9 0 1 0 3.4281740990880567
+  hidden rotation_10 0 -1 0 3.4281924511403026
+  hidden rotation_11 0 1 0 0.9490138236041696
+  hidden rotation_12 0 -1 0 0.9489978449537063
+  translation 0.001258761146573419 1.0053467801999074 0.10193777032499751
+  rotation 0.0007140342571967237 0.003176947101861777 -0.9999946985670433 0.49304588193964916
+  controllerArgs [
+    "demo"
+  ]
+}

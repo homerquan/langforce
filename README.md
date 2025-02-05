@@ -7,3 +7,6 @@ A demo of SLM on robotic control
 `/Applications/Webots.app/Contents/MacOS/webots --stream`
 
 2. Open `http://localhost:1234/index.html`
+
+
+3. update controller `/Applications/Webots.app/Contents/projects/robots/kuka/youbot/controllers/youbot/`

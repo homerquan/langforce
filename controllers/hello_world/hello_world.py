@@ -1,5 +1,6 @@
 from controller import Robot
-import math
+import importlib
+import behavior  # Import our behavior module
 
 # Create the Robot instance.
 robot = Robot()
@@ -12,7 +13,7 @@ wheelNames = ["wheel1", "wheel2", "wheel3", "wheel4"]
 wheels = []
 for name in wheelNames:
     motor = robot.getDevice(name)
-    motor.setPosition(float('inf'))
+    motor.setPosition(float('inf'))  # set wheel motors in velocity mode
     wheels.append(motor)
 
 # ---------------------------
@@ -31,30 +32,29 @@ armMotors[2].setVelocity(0.5)  # This joint will perform the waving motion.
 armMotors[3].setVelocity(0.3)
 armMotors[4].setVelocity(0.3)
 
-# Set fixed positions for the non-waving joints (adjust these as needed)
+# Set fixed positions for the non-waving joints (adjust as needed)
 armMotors[0].setPosition(0.0)
 armMotors[1].setPosition(-0.55)
 armMotors[3].setPosition(-1.5)
 armMotors[4].setPosition(0.0)
 
 # ---------------------------
-# Main control loop
+# Main control loop with hot reload
 # ---------------------------
 while robot.step(timestep) != -1:
     current_time = robot.getTime()
     
-    # Drive in a curve:
-    # (Assuming wheels[0] & wheels[1] are on the left and wheels[2] & wheels[3] are on the right.)
-    left_speed = 3.0    # Left wheels slower.
-    right_speed = 7.0   # Right wheels faster.
+    # Reload the behavior module so that any changes on disk are applied.
+    importlib.reload(behavior)
+    
+    # Get updated control values from the (possibly updated) behavior module.
+    left_speed, right_speed, wave_position = behavior.get_control_values(current_time)
+    
+    # Apply the wheel velocities.
     wheels[0].setVelocity(left_speed)
-    wheels[1].setVelocity(left_speed)
-    wheels[2].setVelocity(right_speed)
+    wheels[1].setVelocity(right_speed)
+    wheels[2].setVelocity(left_speed)
     wheels[3].setVelocity(right_speed)
     
-    # Wave the arm slower but with a bigger range:
-    amplitude = 0.2     # Increased amplitude (radians)
-    offset = -0.75      # Center position (adjust as needed)
-    frequency = 0.5    # Slower frequency (0.25 Hz => one oscillation every 4 seconds)
-    wave_position = offset + amplitude * math.sin(2 * math.pi * frequency * current_time)
+    # Update the waving joint.
     armMotors[2].setPosition(wave_position)

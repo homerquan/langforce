@@ -47,7 +47,23 @@ window.addEventListener('load', function() {
 
   sendButton.onclick = function() {
     const text = bigInput.value;
-    // TODO: Add your code here to send the text somewhere (for example, to the WebSocket).
     console.log("Send button clicked with text:", text);
+  
+    // Send a POST request to the /api/sendCommand endpoint with the instruction.
+    fetch("/api/sendCommand", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ instruction: text })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Response from server:", data);
+      // You can handle the response further here.
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
   };
 });

@@ -38,11 +38,17 @@ armMotors[1].setPosition(-0.55)
 armMotors[3].setPosition(-1.5)
 armMotors[4].setPosition(0.0)
 
+# Retrieve the camera device by its name defined in the PROTO ("camera")
+camera = robot.getDevice('camera')
+camera.enable(timestep)
+
 # ---------------------------
 # Main control loop with hot reload
 # ---------------------------
 while robot.step(timestep) != -1:
     current_time = robot.getTime()
+    
+    image = camera.getImage()
     
     # Reload the behavior module so that any changes on disk are applied.
     importlib.reload(behavior)

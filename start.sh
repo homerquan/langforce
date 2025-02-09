@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source venv/bin/activate
+
 # Set the Webots home directory
 export WEBOTS_HOME="/Applications/Webots.app/Contents/MacOS"
 
@@ -7,4 +9,4 @@ export WEBOTS_HOME="/Applications/Webots.app/Contents/MacOS"
 "$WEBOTS_HOME/webots" --stream --minimize ./worlds/pick_and_place.wbt &
 
 # Start the HTTP server serving files from the ./www directory.
-http-server ./www
+python app.py

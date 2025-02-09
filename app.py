@@ -11,7 +11,7 @@ def index():
     return app.send_static_file('index.html')
 
 # Set up the OpenAI client with your API key.
-client = openai.Client(api_key=os.environ.get("OPENAI_API_KEY", "YOUR API KEY HERE"))
+client = openai.Client(api_key=os.environ.get("OPENAI_API_KEY", "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"))
 
 def generate_behavior_code(user_instruction: str) -> str:
     """

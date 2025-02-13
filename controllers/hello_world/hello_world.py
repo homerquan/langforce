@@ -12,6 +12,10 @@ import base64
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
 
+# Write "stop" to prompt.txt upon initialization.
+with open("prompt.txt", "w") as f:
+    f.write("stop")
+
 # ---------------------------
 # Initialize Base (4 wheels)
 # ---------------------------

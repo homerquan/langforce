@@ -1,1 +1,1 @@
-stop
+find the green objects, and move to them

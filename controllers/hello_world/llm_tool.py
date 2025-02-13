@@ -85,13 +85,13 @@ def command_to_wheel_speeds(command):
     cmd = command.lower()
 
     if cmd == "forward":
-        return (3.0, 3.0)
+        return (5.0, 5.0)
     elif cmd == "backward":
         return (-3.0, -3.0)
     elif cmd in ["turn left", "turn_left"]:
-        return (-2.0, 2.0)
+        return (-5.0, 5.0)
     elif cmd in ["turn right", "turn_right"]:
-        return (2.0, -2.0)
+        return (5.0, -5.0)
     elif cmd == "stop":
         return (0.0, 0.0)
     else:

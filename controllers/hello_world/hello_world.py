@@ -86,33 +86,33 @@ def get_png_image_from_camera(camera):
 last_prompt_mod_time = None
 last_llm_call = 0  # Time of the last LLM call.
 current_command = None
-prompt = ""  # Initialize with a default prompt (if desired).
+prompt = ""  # Initialize with a default prompt if desired.
 
 while robot.step(timestep) != -1:
     current_time = robot.getTime()
     
     # Get the PNG formatted image from the camera.
     png_image = get_png_image_from_camera(camera)
-
-    # Every 10 seconds, check for prompt updates and call the LLM tool.
-    if current_time - last_llm_call >= 10:
-        try:
-            mod_time = os.path.getmtime("prompt.txt")
-        except OSError:
-            mod_time = None  # File not found or inaccessible.
-        
-        # If the prompt file has been updated, reload it.
-        if mod_time is not None and mod_time != last_prompt_mod_time:
-            last_prompt_mod_time = mod_time
-            with open("prompt.txt", "r") as f:
-                prompt = f.read()
-            print("Reloading prompt.txt:", prompt)
-        
-        # Update the timestamp for the last LLM call.
-        last_llm_call = current_time
-        
-        # Call the LLM tool using the current image and prompt.
+    
+    # Always check for prompt.txt updates.
+    try:
+        mod_time = os.path.getmtime("prompt.txt")
+    except OSError:
+        mod_time = None  # File not found or inaccessible.
+    
+    # If prompt.txt has changed, reload it and call the LLM immediately.
+    if mod_time is not None and mod_time != last_prompt_mod_time:
+        last_prompt_mod_time = mod_time
+        with open("prompt.txt", "r") as f:
+            prompt = f.read()
+        print("Prompt file updated. Reloading prompt.txt:", prompt)
         current_command = call_llm_tool(png_image, prompt)
+        last_llm_call = current_time  # Reset the 10s timer.
+    
+    # Otherwise, if 10 seconds have elapsed since the last LLM call, call the LLM.
+    elif current_time - last_llm_call >= 10:
+        current_command = call_llm_tool(png_image, prompt)
+        last_llm_call = current_time
 
     # Map the current command to wheel speeds.
     left_speed, right_speed = command_to_wheel_speeds(current_command)

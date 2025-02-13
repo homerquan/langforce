@@ -1,1 +1,1 @@
-find the convey belt and move to it
+find  the convey belt first, then move to it

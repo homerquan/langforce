@@ -99,5 +99,5 @@ def send_command():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Run the server on port 8080.
-    app.run(port=8080)
+    # Run the server on port 8888.
+    app.run(port=8888)

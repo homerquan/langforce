@@ -38,6 +38,7 @@ def generate_behavior_code(user_instruction: str) -> str:
         "    wave_position = offset + amplitude * math.sin(2 * math.pi * frequency * current_time)\n"
         "    return left_speed, right_speed, wave_position\n"
         "```\n\n"
+        "Only the function body is needed; you don't need to include the import statement or the function signature.\n"
         "Now, generate the code based on the following instruction:\n"
         f"\"{user_instruction}\"\n"
     )

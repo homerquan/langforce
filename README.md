@@ -5,7 +5,10 @@ A demo of SLM on robotic control
 
 ## Requirements
 1. Install Webots on Mac: [Webots Installation Guide](https://cyberbotics.com/doc/guide/installation-procedure#from-the-homebrew-package)
-2. Python setup and run server:
+2. Install ollama 
+   1. Goto: https://ollama.com, download and install the app
+   2. Download this model `ollama run smollm2`
+3. Python setup and run server:
    1. **Create a virtual environment:**
       ```bash
       python3 -m venv venv

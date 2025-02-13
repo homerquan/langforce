@@ -73,7 +73,7 @@ def generate_behavior_code(user_instruction: str) -> str:
 
     # Call the litellm completion function targeting an Ollama model.
     response = litellm.completion(
-        model="ollama/smollm2",  # adjust the model name as needed (or use an Ollama Chat model like "ollama_chat/llama3.1")
+        model="ollama/llava-llama3",  # adjust the model name as needed (or use an Ollama Chat model like "ollama_chat/llama3.1")
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_instruction},

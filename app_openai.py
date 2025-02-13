@@ -1,58 +1,29 @@
 import os
+import openai
 from flask import Flask, request, jsonify
-import litellm  # Use litellm to access Ollama
 
+# Create a Flask app that serves static files from the "www" folder.
 app = Flask(__name__, static_folder="www", static_url_path="")
 
-def extract_plain_code(code):
-    """
-    Extracts the content between the first and last code fence (```).
-    If both a starting and an ending fence are found, it removes everything
-    before the end of the first fence line and everything after the beginning
-    of the last fence. If no fences are found, returns the original code.
-    """
-    first_fence = code.find("```")
-    last_fence = code.rfind("```")
-    
-    # If both fences exist and they are not the same fence:
-    if first_fence != -1 and last_fence != -1 and first_fence != last_fence:
-        # Remove everything before (and including) the first fence line.
-        first_newline = code.find("\n", first_fence)
-        if first_newline != -1:
-            code = code[first_newline+1:]
-        else:
-            code = code[first_fence+3:]
-        
-        # Remove everything from the start of the last fence.
-        code = code[:code.rfind("```")]
-    
-    # If only one fence is present and it's at the beginning, remove that line.
-    elif first_fence == 0:
-        first_newline = code.find("\n", first_fence)
-        if first_newline != -1:
-            code = code[first_newline+1:]
-        else:
-            code = ""
-    
-    # If no fences are found, or conditions don't match, leave the code unchanged.
-    return code.strip()
-
-
+# Optionally, define a route for the root URL ("/") to serve index.html.
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
 
+# Set up the OpenAI client with your API key.
+client = openai.Client(api_key=os.environ.get("OPENAI_API_KEY", "<your own key>"))
+
 def generate_behavior_code(user_instruction: str) -> str:
     """
-    Uses litellm (targeting Ollama) to generate a Python code snippet that
+    Uses the updated OpenAI Python SDK to generate a Python code snippet that
     implements a robot behavior based on the provided natural language instruction.
-    The generated code defines a function `get_control_values(current_time)` that returns:
+    The code snippet must define a function `get_control_values(current_time)` that returns:
     left_speed, right_speed, and wave_position.
     """
     system_prompt = (
         "You are an expert robotic behavior programmer. Given a natural language instruction "
         "that describes the behavior the robot should perform, generate a Python code snippet "
-        "that implements this behavior. The code snippet must define a function called `get_control_values(current_time)` "
+        "that implements this behavior. The code should define a function called `get_control_values(current_time)` "
         "which returns three values: left_speed, right_speed, and wave_position. "
         "The code should compute driving speeds and calculate an arm waving motion using math.sin. "
         "For example, if the instruction is 'moving forward', you might generate:\n\n"
@@ -71,28 +42,33 @@ def generate_behavior_code(user_instruction: str) -> str:
         f"\"{user_instruction}\"\n"
     )
 
-    # Call the litellm completion function targeting an Ollama model.
-    response = litellm.completion(
-        model="ollama/smollm2",  # adjust the model name as needed (or use an Ollama Chat model like "ollama_chat/llama3.1")
+    # Use the updated client method to get a chat completion.
+    chat_completion = client.chat.completions.create(
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_instruction},
         ],
+        model="gpt-4o-mini-2024-07-18",
         temperature=0.7,
-        api_base=os.environ.get("OLLAMA_API_BASE", "http://localhost:11434")
     )
 
     # Extract the generated code from the response.
-    code = response.choices[0].message.content
+    code = chat_completion.choices[0].message.content
 
     # Remove markdown code fence markers if present.
-    return extract_plain_code(code)
+    lines = code.splitlines()
+    if lines and lines[0].strip().startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].strip().startswith("```"):
+        lines = lines[:-1]
+    code = "\n".join(lines)
+    return code
 
 @app.route('/api/sendCommand', methods=['POST'])
 def send_command():
     """
     Expects a JSON payload with an 'instruction' field (e.g., { "instruction": "moving forward" }).
-    It generates the corresponding Python code, writes it to './controllers/hello_world/behavior.py',
+    It generates the corresponding Python code, writes it to './controller/hello_world/behavor.py',
     and returns a JSON response with the generated code.
     """
     data = request.get_json()

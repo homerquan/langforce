@@ -1,6 +1,6 @@
 import unittest
 import os
-from llm_tool import call_llm_tool, llm_navigation_tool, command_to_wheel_speeds
+from llm_tool import call_llm_tool, command_to_wheel_speeds
 
 class TestLLMTool(unittest.TestCase):
     def setUp(self):
@@ -12,9 +12,8 @@ class TestLLMTool(unittest.TestCase):
             self.image = f.read()
         
         self.navigation_prompt = (
-            "front image, help robot to navigate, output: using tools: forward, "
-            "using tools: backward, using tools: stop, using tools: turn left, "
-            "using tools: turn right"
+            "Giving the front image, navigate the robot to the wall."
+            # "turn right"
         )
 
     def test_call_llm_tool(self):
@@ -28,15 +27,6 @@ class TestLLMTool(unittest.TestCase):
             msg=f"Unexpected command received: {command}"
         )
 
-    def test_llm_navigation_tool(self):
-        print("\n--- test_llm_navigation_tool ---")
-        command = llm_navigation_tool(self.image)
-        print("Received command from llm_navigation_tool:", command)
-        self.assertIn(
-            command, 
-            ["forward", "backward", "stop", "turn left", "turn right"],
-            msg=f"Unexpected command received: {command}"
-        )
 
     def test_command_to_wheel_speeds(self):
         print("\n--- test_command_to_wheel_speeds ---")

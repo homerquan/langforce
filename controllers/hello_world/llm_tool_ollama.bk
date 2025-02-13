@@ -7,7 +7,7 @@ import os
 
 def call_llm_tool(image, prompt):
     """
-    Uses liteLLM to call the model "gpt-4o-mini-2024-07-18" with the provided image and prompt.
+    Uses liteLLM to call the model "ollama/llava-llama3" with the provided image and prompt.
     The image (encoded in base64) is sent as an image block in the first user message, and the prompt
     is sent as the second. The output is expected to be a JSON object following a specified schema,
     which includes a "command" field with one of the following values:
@@ -16,7 +16,7 @@ def call_llm_tool(image, prompt):
     # Convert the image to base64.
     image_base64 = base64.b64encode(image).decode("utf-8")
     # Create a Data URI for the image.
-    data_uri = "data:image/png;base64," + image_base64
+    data_uri = "data:image/jpeg;base64," + image_base64
 
     # Define the output JSON schema.
     json_schema = {
@@ -36,62 +36,58 @@ def call_llm_tool(image, prompt):
 
     try:
         response = litellm.completion(
-            model="gpt-4o-mini-2024-07-18",
+            model="ollama/llava-phi3",
             messages=[
-                # System message with high-level instructions.
-                {
-                    "role": "system",
-                    "content": (
-                        "User will tell where to go. You first need to scan your surroundings (if the objective is not in the viewport), "
-                        "turn around, locate the objective, and then move to it. Avoid obstacles. If you reach the destination, stop."
-                    ),
-                },
-                # The first user message sends the image using an image block.
                 {
                     "role": "user",
-                    "content": [{"type": "image_url", "image_url": {"url": data_uri}}],
-                },
-                # The second user message sends the prompt.
-                {"role": "user", "content": prompt},
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": {"url": data_uri}},
+                    ],
+                }
             ],
             response_format={"type": "json_schema", "json_schema": json_schema},
             temperature=0.7,
             max_tokens=15,
-            # Uncomment and set api_base if needed.
-            # api_base=os.environ.get("OLLAMA_API_BASE", "http://localhost:11434")
+            api_base=os.environ.get("OLLAMA_API_BASE", "http://localhost:11434"),
         )
+        
+        # Debug: print the full response for inspection.
+        print("Full response:", response)
+        
         # The response should be a JSON object following the json_schema.
-        result = response["choices"][0]["message"]["content"]
-        if isinstance(result, str):
-            result = json.loads(result)
+        raw_result = response["choices"][0]["message"]["content"]
+        if not raw_result or raw_result.strip() == "":
+            raise ValueError("Empty response content")
+        
+        # Parse the JSON string if necessary.
+        if isinstance(raw_result, str):
+            result = json.loads(raw_result)
+        else:
+            result = raw_result
+
         command = result.get("command", "stop")
-        print("LLM command:", command)
     except Exception as e:
         print("Error calling LLM tool:", e)
         command = "stop"
 
-    print(command)
+    print("Received command:", command)
     return command
 
 
 def command_to_wheel_speeds(command):
     """
     Maps a textual navigation command to left and right wheel speeds.
-    If the command is None or not a string, returns (0.0, 0.0).
     """
-    if not isinstance(command, str):
-        return (0.0, 0.0)
-
     cmd = command.lower()
-
     if cmd == "forward":
-        return (3.0, 3.0)
+        return (2.0, 2.0)
     elif cmd == "backward":
-        return (-3.0, -3.0)
+        return (-2.0, -2.0)
     elif cmd in ["turn left", "turn_left"]:
-        return (-2.0, 2.0)
+        return (-1.0, 1.0)
     elif cmd in ["turn right", "turn_right"]:
-        return (2.0, -2.0)
+        return (1.0, -1.0)
     elif cmd == "stop":
         return (0.0, 0.0)
     else:

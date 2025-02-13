@@ -34,3 +34,4 @@ A demo of SLM on robotic control
 ## Development
 
 * how to test llm (simulate VLA): `python -m unittest test_llm_tool.py`
+

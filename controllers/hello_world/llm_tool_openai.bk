@@ -4,7 +4,6 @@ import json
 import litellm
 import os
 
-
 def call_llm_tool(image, prompt):
     """
     Uses liteLLM to call the model "gpt-4o-mini-2024-07-18" with the provided image and prompt.
@@ -31,27 +30,19 @@ def call_llm_tool(image, prompt):
                 }
             },
             "required": ["command"],
-        },
+        }
     }
 
     try:
         response = litellm.completion(
+            # model remains unchanged
             model="gpt-4o-mini-2024-07-18",
             messages=[
-                # System message with high-level instructions.
-                {
-                    "role": "system",
-                    "content": (
-                        "User will tell where to go. You first need to scan your surroundings (if the objective is not in the viewport), "
-                        "turn around, locate the objective, and then move to it. Avoid obstacles. If you reach the destination, stop."
-                    ),
-                },
-                # The first user message sends the image using an image block.
-                {
-                    "role": "user",
-                    "content": [{"type": "image_url", "image_url": {"url": data_uri}}],
-                },
-                # The second user message sends the prompt.
+                # The first message now sends the image using an image block.
+                {"role": "user", "content": [
+                    {"type": "image_url", "image_url": {"url": data_uri}}
+                ]},
+                # The prompt is sent as a separate message.
                 {"role": "user", "content": prompt},
             ],
             response_format={"type": "json_schema", "json_schema": json_schema},
@@ -65,7 +56,6 @@ def call_llm_tool(image, prompt):
         if isinstance(result, str):
             result = json.loads(result)
         command = result.get("command", "stop")
-        print("LLM command:", command)
     except Exception as e:
         print("Error calling LLM tool:", e)
         command = "stop"
@@ -73,25 +63,19 @@ def call_llm_tool(image, prompt):
     print(command)
     return command
 
-
 def command_to_wheel_speeds(command):
     """
     Maps a textual navigation command to left and right wheel speeds.
-    If the command is None or not a string, returns (0.0, 0.0).
     """
-    if not isinstance(command, str):
-        return (0.0, 0.0)
-
     cmd = command.lower()
-
     if cmd == "forward":
-        return (3.0, 3.0)
+        return (2.0, 2.0)
     elif cmd == "backward":
-        return (-3.0, -3.0)
+        return (-2.0, -2.0)
     elif cmd in ["turn left", "turn_left"]:
-        return (-2.0, 2.0)
+        return (-1.0, 1.0)
     elif cmd in ["turn right", "turn_right"]:
-        return (2.0, -2.0)
+        return (1.0, -1.0)
     elif cmd == "stop":
         return (0.0, 0.0)
     else:

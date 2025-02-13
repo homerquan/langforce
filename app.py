@@ -42,59 +42,11 @@ def extract_plain_code(code):
 def index():
     return app.send_static_file('index.html')
 
-def generate_behavior_code(user_instruction: str) -> str:
-    """
-    Uses litellm (targeting Ollama) to generate a Python code snippet that
-    implements a robot behavior based on the provided natural language instruction.
-    The generated code defines a function `get_control_values(current_time)` that returns:
-    left_speed, right_speed, and wave_position.
-    """
-    system_prompt = (
-        "You are an expert robotic behavior programmer. Given a natural language instruction "
-        "that describes the behavior the robot should perform, generate a Python code snippet "
-        "that implements this behavior. The code snippet must define a function called `get_control_values(current_time)` "
-        "which returns three values: left_speed, right_speed, and wave_position. "
-        "The code should compute driving speeds and calculate an arm waving motion using math.sin. "
-        "For example, if the instruction is 'moving forward', you might generate:\n\n"
-        "```python\n"
-        "import math\n\n"
-        "def get_control_values(current_time):\n"
-        "    left_speed = 3.0\n"
-        "    right_speed = 3.0\n"
-        "    amplitude = 0.2\n"
-        "    offset = -0.75\n"
-        "    frequency = 0.5\n"
-        "    wave_position = offset + amplitude * math.sin(2 * math.pi * frequency * current_time)\n"
-        "    return left_speed, right_speed, wave_position\n"
-        "```\n\n"
-        "Only the function body is needed; you don't need to include the import statement or the function signature.\n"
-        "Now, generate the code based on the following instruction:\n"
-        f"\"{user_instruction}\"\n"
-    )
-
-    # Call the litellm completion function targeting an Ollama model.
-    response = litellm.completion(
-        model="ollama/smollm2",  # adjust the model name as needed (or use an Ollama Chat model like "ollama_chat/llama3.1")
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_instruction},
-        ],
-        temperature=0.7,
-        api_base=os.environ.get("OLLAMA_API_BASE", "http://localhost:11434")
-    )
-
-    # Extract the generated code from the response.
-    code = response.choices[0].message.content
-
-    # Remove markdown code fence markers if present.
-    return extract_plain_code(code)
-
 @app.route('/api/sendCommand', methods=['POST'])
 def send_command():
     """
     Expects a JSON payload with an 'instruction' field (e.g., { "instruction": "moving forward" }).
-    It generates the corresponding Python code, writes it to './controllers/hello_world/behavior.py',
-    and returns a JSON response with the generated code.
+    It saves the instruction to "prompt.txt" at "./controllers/hello_world".
     """
     data = request.get_json()
     if not data or "instruction" not in data:
@@ -103,25 +55,23 @@ def send_command():
     instruction = data["instruction"]
 
     try:
-        # Generate the Python code based on the user's instruction.
-        code = generate_behavior_code(instruction)
-
         # Ensure the target directory exists.
         target_dir = "./controllers/hello_world"
         os.makedirs(target_dir, exist_ok=True)
 
-        # Write (or overwrite) the generated code to the file.
-        file_path = os.path.join(target_dir, "behavior.py")
+        # Write (or overwrite) the instruction to "prompt.txt".
+        file_path = os.path.join(target_dir, "prompt.txt")
         with open(file_path, "w") as f:
-            f.write(code)
+            f.write(instruction)
 
         return jsonify({
-            "message": "Behavior code generated and written successfully.",
+            "message": "Instruction saved successfully.",
             "file": file_path,
-            "code": code
+            "instruction": instruction
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     # Run the server on port 8888.

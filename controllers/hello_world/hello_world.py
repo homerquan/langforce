@@ -1,6 +1,12 @@
 from controller import Robot
+import os
 import importlib
 import behavior  # Import our behavior module
+from llm_tool import call_llm_tool, command_to_wheel_speeds
+from PIL import Image
+import io
+import numpy as np
+import base64
 
 # Create the Robot instance.
 robot = Robot()
@@ -42,25 +48,73 @@ armMotors[4].setPosition(0.0)
 camera = robot.getDevice('camera')
 camera.enable(timestep)
 
+def get_png_image_from_camera(camera):
+    """
+    Converts the raw image from the Webots camera to PNG bytes.
+    The raw image is assumed to be in BGRA format.
+    """
+    raw_image = camera.getImage()
+    if raw_image is None:
+        return None
+    width = camera.getWidth()
+    height = camera.getHeight()
+    
+    # Convert the raw image to a numpy array.
+    image_array = np.frombuffer(raw_image, dtype=np.uint8).reshape((height, width, 4))
+    
+    # Convert from BGRA to RGB.
+    # Take the first three channels and reverse their order.
+    image_rgb = image_array[:, :, :3][:, :, ::-1]
+    
+    # Create an image from the numpy array.
+    im = Image.fromarray(image_rgb)
+    
+    # Save the image to a bytes buffer in PNG format.
+    buffer = io.BytesIO()
+    im.save(buffer, format="PNG")
+    png_data = buffer.getvalue()
+    return png_data
+
 # ---------------------------
 # Main control loop with hot reload
 # ---------------------------
+# Initialize variables.
+last_prompt_mod_time = None
+last_llm_call = 0  # Time of the last LLM call.
+current_command = None
+prompt = ""  # Initialize with a default prompt (if desired).
+
 while robot.step(timestep) != -1:
     current_time = robot.getTime()
     
-    image = camera.getImage()
-    
-    # Reload the behavior module so that any changes on disk are applied.
-    importlib.reload(behavior)
-    
-    # Get updated control values from the (possibly updated) behavior module.
-    left_speed, right_speed, wave_position = behavior.get_control_values(current_time)
+    # Get the PNG formatted image from the camera.
+    png_image = get_png_image_from_camera(camera)
+
+    # Every 10 seconds, check for prompt updates and call the LLM tool.
+    if current_time - last_llm_call >= 10:
+        try:
+            mod_time = os.path.getmtime("prompt.txt")
+        except OSError:
+            mod_time = None  # File not found or inaccessible.
+        
+        # If the prompt file has been updated, reload it.
+        if mod_time is not None and mod_time != last_prompt_mod_time:
+            last_prompt_mod_time = mod_time
+            with open("prompt.txt", "r") as f:
+                prompt = f.read()
+            print("Reloading prompt.txt:", prompt)
+        
+        # Update the timestamp for the last LLM call.
+        last_llm_call = current_time
+        
+        # Call the LLM tool using the current image and prompt.
+        current_command = call_llm_tool(png_image, prompt)
+
+    # Map the current command to wheel speeds.
+    left_speed, right_speed = command_to_wheel_speeds(current_command)
     
     # Apply the wheel velocities.
     wheels[0].setVelocity(left_speed)
     wheels[1].setVelocity(right_speed)
     wheels[2].setVelocity(left_speed)
     wheels[3].setVelocity(right_speed)
-    
-    # Update the waving joint.
-    armMotors[2].setPosition(wave_position)
